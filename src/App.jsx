@@ -5,9 +5,13 @@ import NewsletterSignup from './components/NewsletterSignup';
 import { fetchTours } from './api/wordpress';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDocumentTitle } from './utils/documentTitle';
 
 function App() {
   const navigate = useNavigate();
+  // Set the home page title
+  useDocumentTitle();
+  
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,6 +21,7 @@ function App() {
   const [showNewsletterModal, setShowNewsletterModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [screenSize, setScreenSize] = useState('lg');
 
 
   useEffect(() => {
@@ -39,18 +44,49 @@ function App() {
     loadTours();
   }, []);
 
+  // Screen size detection
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setScreenSize('mobile');
+      } else if (width < 1024) {
+        setScreenSize('sm');
+      } else {
+        setScreenSize('lg');
+      }
+    };
+
+    handleResize(); // Set initial screen size
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Calculate slides per view based on screen size
+  const getSlidesPerView = () => {
+    switch(screenSize) {
+      case 'mobile': return 1;
+      case 'sm': return 2;
+      case 'lg': return 3;
+      default: return 3;
+    }
+  };
+
+  const slidesPerView = getSlidesPerView();
+  const maxSlideIndex = Math.max(0, tours.length - slidesPerView);
+
   // Auto-play carousel
   useEffect(() => {
-    if (tours.length > 3) {
+    if (tours.length > slidesPerView) {
       const interval = setInterval(() => {
         setCurrentSlide((prev) => 
-          prev >= tours.length - 3 ? 0 : prev + 1
+          prev >= maxSlideIndex ? 0 : prev + 1
         );
       }, 4000); // Auto-advance every 4 seconds
 
       return () => clearInterval(interval);
     }
-  }, [tours.length]);
+  }, [tours.length, slidesPerView, maxSlideIndex]);
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -360,13 +396,13 @@ function App() {
                 <div 
                   className="flex transition-transform duration-500 ease-in-out"
                   style={{
-                    transform: `translateX(-${currentSlide * (100 / 3)}%)` // Move by 1/3 for 3 items
+                    transform: `translateX(-${currentSlide * (100 / slidesPerView)}%)`
                   }}
                 >
                   {tours.slice(0, Math.min(12, tours.length)).map((tour) => (
                     <div 
                       key={tour.id} 
-                      className="flex-shrink-0 px-4 w-1/3" // Always show 3 items
+                      className="flex-shrink-0 px-4 w-full sm:w-1/2 lg:w-1/3" // Mobile: full width, SM: half width, LG: third width
                     >
                       <TourCard
                         title={tour.title}
@@ -385,8 +421,8 @@ function App() {
                 </div>
               </div>
 
-              {/* Navigation Arrows - Show when more than 3 tours */}
-              {tours.length > 3 && (
+              {/* Navigation Arrows - Show when more tours than can fit in view */}
+              {tours.length > slidesPerView && (
                 <>
                   <button
                     onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
@@ -398,8 +434,8 @@ function App() {
                     </svg>
                   </button>
                   <button
-                    onClick={() => setCurrentSlide(Math.min(tours.length - 3, currentSlide + 1))}
-                    disabled={currentSlide >= tours.length - 3}
+                    onClick={() => setCurrentSlide(Math.min(maxSlideIndex, currentSlide + 1))}
+                    disabled={currentSlide >= maxSlideIndex}
                     className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-6 bg-white/90 backdrop-blur-sm rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed z-10 group border border-gray-200"
                   >
                     <svg className="w-7 h-7 text-gray-700 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,9 +446,9 @@ function App() {
               )}
 
               {/* Dots Indicator */}
-              {tours.length > 3 && (
+              {tours.length > slidesPerView && (
                 <div className="flex justify-center mt-8 space-x-3">
-                  {Array.from({ length: Math.max(1, tours.length - 2) }).map((_, index) => (
+                  {Array.from({ length: maxSlideIndex + 1 }).map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentSlide(index)}
@@ -427,25 +463,25 @@ function App() {
               )}
 
               {/* Carousel Progress Bar */}
-              {tours.length > 3 && (
+              {tours.length > slidesPerView && (
                 <div className="mt-6">
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-500"
                       style={{
-                        width: `${((currentSlide + 1) / (tours.length - 2)) * 100}%`
+                        width: `${((currentSlide + 1) / (maxSlideIndex + 1)) * 100}%`
                       }}
                     />
                   </div>
                   <div className="flex justify-between text-sm text-gray-500 mt-2">
-                    <span>Tour {currentSlide + 1} of {tours.length - 2}</span>
+                    <span>View {currentSlide + 1} of {maxSlideIndex + 1}</span>
                     <span>{tours.length} Total Tours</span>
                   </div>
                 </div>
               )}
 
               {/* Show All Tours Button */}
-              {tours.length > 3 && (
+              {tours.length > slidesPerView && (
                 <div className="text-center mt-8">
                   <button 
                     onClick={() => {

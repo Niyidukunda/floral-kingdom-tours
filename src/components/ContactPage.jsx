@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDocumentTitle } from '../utils/documentTitle';
 
 function ContactPage() {
   const navigate = useNavigate();
+  // Set the contact page title
+  useDocumentTitle('Contact Us');
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',

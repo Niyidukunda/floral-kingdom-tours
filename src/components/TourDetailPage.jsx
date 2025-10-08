@@ -1,12 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { fetchTour } from '../api/wordpress';
+import { useDocumentTitle } from '../utils/documentTitle';
 
 function TourDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Update document title when tour data loads
+  useDocumentTitle(tour?.title);
 
 
 
