@@ -1,12 +1,13 @@
 // WordPress REST API configuration
-const API_BASE_URL = 'http://floral-kingdom-headless.local/wp-json';
+const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost';
+const API_BASE_URL = isProduction ? null : 'http://floral-kingdom-headless.local/wp-json';
 
 // WordPress REST API endpoints
 export const ENDPOINTS = {
-  TOURS: `${API_BASE_URL}/wp/v2/tours`,
-  BOOKINGS: `${API_BASE_URL}/floral/v1/bookings`,
-  CONTACT: `${API_BASE_URL}/floral/v1/contact`,
-  MEDIA: `${API_BASE_URL}/wp/v2/media`
+  TOURS: API_BASE_URL ? `${API_BASE_URL}/wp/v2/tours` : null,
+  BOOKINGS: API_BASE_URL ? `${API_BASE_URL}/floral/v1/bookings` : null,
+  CONTACT: API_BASE_URL ? `${API_BASE_URL}/floral/v1/contact` : null,
+  MEDIA: API_BASE_URL ? `${API_BASE_URL}/wp/v2/media` : null
 };
 
 // Helper function to clean WordPress HTML content
@@ -61,6 +62,12 @@ const extractExcerpt = (content, maxLength = 200) => {
 
 // Fetch all tours
 export const fetchTours = async () => {
+  // In production or when WordPress API is not available, use fallback data
+  if (!ENDPOINTS.TOURS) {
+    console.log('Using fallback tour data (production mode)');
+    return getFallbackTours();
+  }
+  
   try {
     const response = await fetch(`${ENDPOINTS.TOURS}?_embed&per_page=20`);
     if (!response.ok) {
@@ -111,6 +118,13 @@ export const fetchTours = async () => {
 
 // Fetch single tour by ID
 export const fetchTour = async (id) => {
+  // In production or when WordPress API is not available, use fallback data
+  if (!ENDPOINTS.TOURS) {
+    console.log('Using fallback tour data for ID:', id);
+    const fallbackTours = getFallbackTours();
+    return fallbackTours.find(tour => tour.id == id) || fallbackTours[0];
+  }
+  
   try {
     const response = await fetch(`${ENDPOINTS.TOURS}/${id}?_embed`);
     if (!response.ok) {
@@ -157,6 +171,15 @@ export const fetchTour = async (id) => {
 
 // Submit booking
 export const submitBooking = async (bookingData) => {
+  // In production, show demo message
+  if (!ENDPOINTS.BOOKINGS) {
+    return {
+      success: true,
+      message: 'Demo Mode: Booking request received! In the live version, this would be submitted to WordPress and you would receive email confirmation.',
+      booking_id: 'DEMO_' + Date.now()
+    };
+  }
+  
   try {
     const response = await fetch(ENDPOINTS.BOOKINGS, {
       method: 'POST',
@@ -181,6 +204,14 @@ export const submitBooking = async (bookingData) => {
 
 // Submit contact form
 export const submitContact = async (contactData) => {
+  // In production, show demo message
+  if (!ENDPOINTS.CONTACT) {
+    return {
+      success: true,
+      message: 'Demo Mode: Message received! In the live version, this would be sent via WordPress and you would receive email confirmation.'
+    };
+  }
+  
   try {
     const response = await fetch(ENDPOINTS.CONTACT, {
       method: 'POST',

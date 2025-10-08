@@ -2,11 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Standardize to 80% scale for refined, compact appearance */
+html {
+  font-size: 12.8px; /* 80% of 16px base */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-size: 1rem; /* Will be 12.8px due to html font-size */
+  line-height: 1.5;
+  zoom: 1; /* Ensure consistent zoom level */
+  -webkit-text-size-adjust: 100%; /* Prevent mobile text scaling */
+  -ms-text-size-adjust: 100%;
+}
+
 /* Custom utilities for enhanced design */
 @layer utilities {
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -36,6 +52,33 @@
 
   .btn-interactive:active {
     transform: scale(0.98);
+  }
+
+  /* Refined spacing for 80% scale aesthetic */
+  .compact-section {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  .compact-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Refined text sizes for better hierarchy */
+  .text-compact-xl {
+    font-size: 1.125rem; /* 18px at 80% scale = ~14.4px */
+    line-height: 1.4;
+  }
+
+  .text-compact-2xl {
+    font-size: 1.5rem; /* 24px at 80% scale = ~19.2px */
+    line-height: 1.3;
+  }
+
+  .text-compact-3xl {
+    font-size: 1.875rem; /* 30px at 80% scale = ~24px */
+    line-height: 1.2;
   }
 
   /* Hero background image - Main landscape */
