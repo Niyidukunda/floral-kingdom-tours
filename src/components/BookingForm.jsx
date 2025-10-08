@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { submitBooking } from '../api/wordpress';
 
-function BookingForm({ tour, onClose, onSubmit }) {
+function BookingForm({ tour, onClose }) {
   const [formData, setFormData] = useState({
     tourId: parseInt(tour?.id) || 1,
     tourTitle: tour?.title || 'Tour Booking',
